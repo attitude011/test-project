@@ -1,0 +1,63 @@
+openapi: 3.0.3
+info:
+  title: Transaction Lookup API
+  version: 1.0.0
+paths:
+  /getTrx/{id}:
+    get:
+      summary: Lookup a transaction by id
+      security:
+        - bearerAuth: []
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Transaction retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TransactionResponse'
+        '500':
+          description: Upstream conflict translated to internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    TransactionResponse:
+      type: object
+      properties:
+        amount:
+          type: integer
+        store:
+          type: string
+        currency:
+          type: string
+        users:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+    User:
+      type: object
+      properties:
+        name:
+          type: string
+        address:
+          type: string
+    ErrorResponse:
+      type: object
+      properties:
+        code:
+          type: string
+        Error:
+          type: integer
