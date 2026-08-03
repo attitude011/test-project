@@ -59,6 +59,10 @@ A client receives a clear error response when the external Serviex service rejec
 
 ## Requirements *(mandatory)*
 
+### Coding Standards
+
+- **CS-001**: All DTO classes MUST use Lombok annotations (`@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`). Manual getters, setters, and constructors are prohibited in DTO classes.
+
 ### Functional Requirements
 
 - **FR-001**: The system MUST expose a GET /getTrx/{id} endpoint where {id} is the transaction ID identified as idTransaction.

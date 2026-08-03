@@ -66,6 +66,11 @@ All changes MUST be reviewed for compliance with this constitution before merge.
 Build and test evidence MUST be produced for each change, and any deviation from
 required architecture or security rules MUST be documented and approved.
 
+### VII. DTO Lombok Standard
+Data transfer object classes (DTOs) MUST use Lombok annotations for boilerplate.
+DTO classes MUST include `@Data`, `@NoArgsConstructor`, and `@AllArgsConstructor`.
+Manual getters, setters, and constructors are prohibited for DTO types.
+
 ## Governance
 This constitution supersedes informal practices for this project. Amendments
 require a documented proposal, review by the maintainer, and a version bump.
