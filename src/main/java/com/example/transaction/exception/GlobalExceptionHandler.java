@@ -1,5 +1,6 @@
 package com.example.transaction.exception;
 
+import com.example.transaction.dto.BookingErrorResponse;
 import com.example.transaction.dto.ErrorResponseDto;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -22,4 +23,12 @@ public class GlobalExceptionHandler {
         ErrorResponseDto body = new ErrorResponseDto(errorCode, errorValue);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
     }
+
+    @ExceptionHandler(BookingApiException.class)
+    public ResponseEntity<BookingErrorResponse> handleBookingApiException(BookingApiException exception) {
+        BookingErrorResponse body = new BookingErrorResponse(exception.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(body);
+    }
 }
+
+

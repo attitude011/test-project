@@ -6,6 +6,9 @@ spring:
     web-application-type: servlet
   application:
     name: transaction-service
+  data:
+    mongodb:
+      uri: mongodb://root:secret@localhost:27017/booking_db?authSource=admin
 
 serviex:
   base-url: http://localhost:9090
@@ -18,3 +21,10 @@ error:
   mapping:
     code: SERVIEX_CONFLICT
     error: 500
+
+booking:
+  api:
+    url: https://restful-booker.herokuapp.com/booking/{id}
+  error:
+    message: ketoKet
+
