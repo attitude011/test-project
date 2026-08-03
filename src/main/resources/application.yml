@@ -9,7 +9,7 @@ spring:
 
 serviex:
   base-url: http://localhost:9090
-  transactions-path: /transactions
+  transactions-path: /getTrx
 
 jwt:
   secret: local-dev-secret-change-me-1234567890
