@@ -1,6 +1,10 @@
 server:
   port: 8080
 
+local:
+  api:
+    base-url: http://localhost:8080
+
 spring:
   main:
     web-application-type: servlet

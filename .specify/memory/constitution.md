@@ -71,10 +71,21 @@ Data transfer object classes (DTOs) MUST use Lombok annotations for boilerplate.
 DTO classes MUST include `@Data`, `@NoArgsConstructor`, and `@AllArgsConstructor`.
 Manual getters, setters, and constructors are prohibited for DTO types.
 
+### VIII. API Client Auto-Generation
+Every new REST endpoint added to the application MUST be accompanied by a corresponding
+typed client method in the `apiclient` package before the feature is considered complete.
+The client class MUST be organized by domain (e.g. `AuthApiClient`, `TransactionApiClient`,
+`BookingApiClient`). Each client method MUST: (a) use the `localApiWebClient` bean from
+`LocalApiClientConfig`; (b) be strictly typed with the correct request parameters and
+return DTO; (c) wrap all exceptions in `ApiClientException`; (d) carry full Javadoc
+per rule CS-002. Endpoints with JWT protection MUST accept the bearer token as an explicit
+`String bearerToken` parameter. No hardcoded URLs are permitted — the base URL MUST be
+injected from `local.api.base-url` in `application.yml`.
+
 ## Governance
 This constitution supersedes informal practices for this project. Amendments
 require a documented proposal, review by the maintainer, and a version bump.
 Compliance reviews MUST verify the architecture layers, security controls,
 configuration location, and error handling behavior before release.
 
-**Version**: 1.0.1 | **Ratified**: 2026-07-31 | **Last Amended**: 2026-07-31
+**Version**: 1.2.0 | **Ratified**: 2026-07-31 | **Last Amended**: 2026-08-05

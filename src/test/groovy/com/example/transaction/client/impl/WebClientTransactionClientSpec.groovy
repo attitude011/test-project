@@ -2,6 +2,7 @@ package com.example.transaction.client.impl
 
 import com.example.transaction.dto.TransactionResponseDto
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import spock.lang.Specification
 
@@ -54,6 +55,51 @@ class WebClientTransactionClientSpec extends Specification {
 
         then: "uri is called exactly once with the correct template and the id as varargs"
         1 * requestUriSpec.uri("http://serviex.local/transactions/{id}", _ as Object[]) >> requestHeadersSpec
+    }
+
+    // ─── Error handling ────────────────────────────────────────────────────────
+
+    def "getTransaction should propagate RuntimeException when the Mono emits an error"() {
+        given: "the Mono signals a generic upstream failure"
+        webClient.get()                                         >> requestUriSpec
+        requestUriSpec.uri(*_)                                  >> requestHeadersSpec
+        requestHeadersSpec.retrieve()                           >> responseSpec
+        responseSpec.bodyToMono(TransactionResponseDto)         >> Mono.error(new RuntimeException("upstream failure"))
+
+        when:
+        client.getTransaction("TX-ERR")
+
+        then: "the exception propagates unmodified — the client layer does not catch or wrap it"
+        thrown(RuntimeException)
+    }
+
+    def "getTransaction should propagate WebClientResponseException.Conflict for 409 responses so GlobalExceptionHandler can remap it to HTTP 500"() {
+        given: "Serviex returns a 409 Conflict"
+        def conflict = WebClientResponseException.create(409, "Conflict", null, null, null)
+        webClient.get()                                         >> requestUriSpec
+        requestUriSpec.uri(*_)                                  >> requestHeadersSpec
+        requestHeadersSpec.retrieve()                           >> responseSpec
+        responseSpec.bodyToMono(TransactionResponseDto)         >> Mono.error(conflict)
+
+        when:
+        client.getTransaction("TX-409")
+
+        then: "WebClientResponseException.Conflict propagates so the @ControllerAdvice can intercept it"
+        def ex = thrown(WebClientResponseException.Conflict)
+        ex.rawStatusCode == 409
+    }
+
+    def "getTransaction should propagate exception when retrieve() itself throws synchronously before returning a Mono"() {
+        given: "retrieve() throws synchronously — no Mono is ever returned"
+        webClient.get()                                         >> requestUriSpec
+        requestUriSpec.uri(*_)                                  >> requestHeadersSpec
+        requestHeadersSpec.retrieve() >> { throw new RuntimeException("connection refused") }
+
+        when:
+        client.getTransaction("TX-DOWN")
+
+        then: "the synchronous exception propagates without being wrapped"
+        thrown(RuntimeException)
     }
 }
 

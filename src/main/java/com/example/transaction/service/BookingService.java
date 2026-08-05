@@ -5,21 +5,12 @@ import com.example.transaction.dto.BookingResponse;
 public interface BookingService {
 
     /**
-     * Retrieves the booking record for the given identifier, persists it to MongoDB for
-     * auditing purposes, and returns the original API response to the caller.
+     * Retrieves the booking from the external API, persists it to MongoDB, and returns it.
+     * DB failures are silently swallowed — the API flow is never interrupted.
      *
-     * <p>The persistence step is <em>resilient</em>: if the database is unavailable the
-     * error is logged and the method still returns the {@link com.example.transaction.dto.BookingResponse}
-     * to ensure the API flow is never interrupted by a database outage.
-     *
-     * @param id the unique numeric booking identifier as supplied by the external
-     *           Restful-Booker API; must not be {@code null}
-     * @return the fully-populated {@link com.example.transaction.dto.BookingResponse}
-     *         fetched from the external API; never {@code null} on success
-     * @throws com.example.transaction.exception.BookingApiException if the external API
-     *         call fails; database failures are silently swallowed and do not produce this
-     *         exception
+     * @param id booking identifier; must not be {@code null}
+     * @return populated {@link com.example.transaction.dto.BookingResponse}
+     * @throws com.example.transaction.exception.BookingApiException on external API failure
      */
     BookingResponse getBooking(Integer id);
 }
-

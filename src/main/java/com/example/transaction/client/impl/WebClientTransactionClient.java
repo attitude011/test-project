@@ -19,35 +19,20 @@ public class WebClientTransactionClient implements TransactionClient {
     private String transactionsPath;
 
     /**
-     * Constructs a new {@code WebClientTransactionClient} and initialises the underlying
-     * {@link WebClient} from the application-scoped {@link WebClient.Builder}.
-     *
-     * @param webClientBuilder the Spring-managed {@link WebClient.Builder} used to create
-     *                         the reactive HTTP client; must not be {@code null}
+     * @param webClientBuilder Spring-managed builder; must not be {@code null}
      */
     public WebClientTransactionClient(WebClient.Builder webClientBuilder) {
         this.webClient = webClientBuilder.build();
     }
 
     /**
-     * Performs a blocking {@code GET} request to the Serviex external service. The full
-     * URI is assembled at runtime as {@code <serviex.base-url><serviex.transactions-path>/{id}},
-     * where both prefix segments are injected from {@code application.yml} and the
-     * {@code id} path variable is substituted with the supplied {@code idTransaction}.
+     * Calls Serviex at {@code <serviex.base-url><serviex.transactions-path>/{id}}.
+     * HTTP 409 is not caught here — it propagates for the global exception handler.
      *
-     * <p>A Serviex HTTP 409 response is <em>not</em> caught here; it is deliberately
-     * allowed to propagate as a
-     * {@link org.springframework.web.reactive.function.client.WebClientResponseException.Conflict}
-     * so that the global {@link com.example.transaction.exception.GlobalExceptionHandler}
-     * can translate it into a standardised HTTP 500 payload.
-     *
-     * @param idTransaction the Serviex transaction identifier used as the {@code {id}} path
-     *                      variable; must not be {@code null} or blank
-     * @return a {@link com.example.transaction.dto.TransactionResponseDto} deserialised from
-     *         the JSON body returned by Serviex, containing amount, store, currency, and users
+     * @param idTransaction path variable forwarded to Serviex; must not be {@code null}
+     * @return populated {@link TransactionResponseDto}
      * @throws org.springframework.web.reactive.function.client.WebClientResponseException
-     *         for any non-2xx HTTP response; callers should treat 409 specifically via the
-     *         global exception handler
+     *         on any non-2xx response
      */
     @Override
     public TransactionResponseDto getTransaction(String idTransaction) {

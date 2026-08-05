@@ -63,6 +63,7 @@ A client receives a clear error response when the external Serviex service rejec
 
 - **CS-001**: All DTO classes MUST use Lombok annotations (`@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`). Manual getters, setters, and constructors are prohibited in DTO classes.
 - **CS-002**: Every Java method created, updated, or generated within this repository MUST include comprehensive Javadoc documentation. The Javadoc MUST contain: (a) a clear description of the method's intent and behavior; (b) a `@param` tag for every parameter detailing its purpose and constraints; (c) a `@return` tag describing the return value and structure (omit only for `void` methods); (d) `@throws` tags for all checked and relevant runtime exceptions with the exact conditions under which they are thrown. Generic or self-evident descriptions are prohibited.
+- **CS-003**: Every new REST endpoint added to the application MUST be accompanied by a corresponding typed client method in the `apiclient` package before the feature is considered complete. The client MUST be organised by domain (`AuthApiClient`, `TransactionApiClient`, `BookingApiClient`, etc.), use the `localApiWebClient` bean, wrap all errors in `ApiClientException`, carry full Javadoc per CS-002, and accept the bearer token as an explicit `String bearerToken` parameter for JWT-protected endpoints.
 
 ### Functional Requirements
 

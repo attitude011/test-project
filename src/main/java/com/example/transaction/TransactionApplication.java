@@ -6,11 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @SpringBootApplication
 public class TransactionApplication {
     /**
-     * Application entry point. Bootstraps the Spring Boot context and starts the embedded server.
+     * Bootstraps the Spring Boot application.
      *
-     * @param args command-line arguments passed to the JVM at startup; forwarded directly to
-     *             {@link SpringApplication#run(Class, String...)} for Spring-standard processing
-     *             (e.g. {@code --server.port=9090})
+     * @param args command-line arguments forwarded to {@link SpringApplication#run}
      */
     public static void main(String[] args) {
         SpringApplication.run(TransactionApplication.class, args);

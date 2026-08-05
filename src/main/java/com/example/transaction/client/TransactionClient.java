@@ -5,18 +5,12 @@ import com.example.transaction.dto.TransactionResponseDto;
 public interface TransactionClient {
 
     /**
-     * Retrieves the transaction record identified by the given transaction ID from the
-     * external Serviex service. Implementations must surface any HTTP 409 (Conflict)
-     * responses so that the global exception handler can translate them to HTTP 500.
+     * Retrieves the transaction record for the given ID from Serviex.
      *
-     * @param idTransaction the external transaction identifier used as a path variable
-     *                      when invoking the Serviex API; must not be {@code null} or blank
-     * @return a {@link com.example.transaction.dto.TransactionResponseDto} containing the
-     *         amount, store name, currency code, and the list of associated users returned
-     *         by Serviex
+     * @param idTransaction Serviex transaction identifier; must not be {@code null}
+     * @return populated {@link com.example.transaction.dto.TransactionResponseDto}
      * @throws org.springframework.web.reactive.function.client.WebClientResponseException.Conflict
-     *         if the Serviex API responds with HTTP 409; caught and remapped to HTTP 500
-     *         by the global exception handler
+     *         when Serviex returns HTTP 409; remapped to HTTP 500 by the global exception handler
      */
     TransactionResponseDto getTransaction(String idTransaction);
 }

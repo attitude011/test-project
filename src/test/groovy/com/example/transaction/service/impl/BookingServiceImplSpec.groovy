@@ -120,4 +120,38 @@ class BookingServiceImplSpec extends Specification {
         and:
         0 * bookingRepository.save(_)
     }
+
+    // ─── Additional error-handling edge cases ─────────────────────────────────
+
+    def "getBooking should swallow specific database exceptions such as IllegalStateException from repository and still return the response"() {
+        given: "the DB throws a schema-level error"
+        def response = new BookingResponse("A", "B", 0, false, new BookingDates("", ""), "")
+        bookingClient.getBooking(20) >> response
+        bookingRepository.save(_)   >> { throw new IllegalStateException("DB schema mismatch") }
+
+        when:
+        def result = service.getBooking(20)
+
+        then: "the IllegalStateException is silently swallowed — API flow continues"
+        noExceptionThrown()
+        and:
+        result == response
+    }
+
+    def "getBooking should preserve the full cause chain of a BookingApiException thrown by bookingClient"() {
+        given: "the HTTP client wraps a root-cause exception"
+        def rootCause = new RuntimeException("connection refused")
+        def apiEx     = new BookingApiException("ketoKet", rootCause)
+        bookingClient.getBooking(2) >> { throw apiEx }
+
+        when:
+        service.getBooking(2)
+
+        then: "the BookingApiException propagates with message and cause intact for diagnostics"
+        def ex = thrown(BookingApiException)
+        ex.message == "ketoKet"
+        ex.cause   == rootCause
+        and: "repository is never touched because the client failed before any response was obtained"
+        0 * bookingRepository.save(_)
+    }
 }

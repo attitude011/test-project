@@ -2,6 +2,7 @@ package com.example.transaction.service.impl
 
 import com.example.transaction.client.TransactionClient
 import com.example.transaction.dto.TransactionResponseDto
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import spock.lang.Specification
 
 class TransactionServiceImplSpec extends Specification {
@@ -35,6 +36,46 @@ class TransactionServiceImplSpec extends Specification {
 
         then: "null is propagated to the caller"
         result == null
+    }
+
+    // ─── Error handling ────────────────────────────────────────────────────────
+
+    def "getTransaction should propagate WebClientResponseException.Conflict thrown by the client without wrapping"() {
+        given: "the Serviex client throws a 409 Conflict"
+        def conflict = WebClientResponseException.create(409, "Conflict", null, null, null)
+        transactionClient.getTransaction("TX-409") >> { throw conflict }
+
+        when:
+        service.getTransaction("TX-409")
+
+        then: "the Conflict exception propagates unchanged so GlobalExceptionHandler can remap it to HTTP 500"
+        def ex = thrown(WebClientResponseException.Conflict)
+        ex.rawStatusCode == 409
+    }
+
+    def "getTransaction should propagate any RuntimeException thrown by the client without wrapping or swallowing"() {
+        given: "the client throws a generic connection error"
+        transactionClient.getTransaction("TX-ERR") >> { throw new RuntimeException("network timeout") }
+
+        when:
+        service.getTransaction("TX-ERR")
+
+        then: "the exception propagates unchanged — the service layer introduces no catch block"
+        def ex = thrown(RuntimeException)
+        ex.message == "network timeout"
+    }
+
+    def "getTransaction should propagate WebClientResponseException for any non-2xx response other than 409"() {
+        given: "the client throws a 503 Service Unavailable"
+        def serviceUnavailable = WebClientResponseException.create(503, "Service Unavailable", null, null, null)
+        transactionClient.getTransaction("TX-503") >> { throw serviceUnavailable }
+
+        when:
+        service.getTransaction("TX-503")
+
+        then: "the exception propagates; the service does not swallow non-conflict HTTP errors"
+        def ex = thrown(WebClientResponseException)
+        ex.rawStatusCode == 503
     }
 }
 

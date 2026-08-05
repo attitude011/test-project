@@ -1,10 +1,13 @@
 package com.example.transaction.controller
 
 import com.example.transaction.dto.TransactionResponseDto
+import com.example.transaction.exception.GlobalExceptionHandler
 import com.example.transaction.service.TransactionService
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import org.springframework.web.reactive.function.client.WebClientResponseException
+import org.springframework.web.util.NestedServletException
 import spock.lang.Specification
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
@@ -48,6 +51,44 @@ class TransactionControllerSpec extends Specification {
 
         then: "service.getTransaction is called exactly once with the correct id"
         1 * transactionService.getTransaction("ABC-99")
+    }
+
+    // ─── Error handling ────────────────────────────────────────────────────────
+
+    def "getTransaction should return HTTP 500 with configured error body when service surfaces a WebClientResponseException.Conflict"() {
+        given: "a GlobalExceptionHandler wired with known error values"
+        def handler = new GlobalExceptionHandler()
+        handler.@errorCode  = "SERVIEX_CONFLICT"
+        handler.@errorValue = 500
+        def mvc = MockMvcBuilders
+                .standaloneSetup(new TransactionController(transactionService))
+                .setControllerAdvice(handler)
+                .build()
+        and: "the service propagates a 409 Conflict from Serviex"
+        transactionService.getTransaction("TXN-409") >> {
+            throw WebClientResponseException.create(409, "Conflict", null, null, null)
+        }
+
+        when:
+        def result = mvc.perform(get("/getTrx/TXN-409").accept(MediaType.APPLICATION_JSON))
+
+        then: "GlobalExceptionHandler translates it to HTTP 500 with the configured code and Error fields"
+        result.andExpect(status().isInternalServerError())
+              .andExpect(jsonPath('$.code').value("SERVIEX_CONFLICT"))
+              .andExpect(jsonPath('$.Error').value(500))
+    }
+
+    def "getTransaction should propagate an unhandled RuntimeException as NestedServletException when no matching handler exists"() {
+        given: "the service throws a generic exception not covered by GlobalExceptionHandler"
+        transactionService.getTransaction("TXN-BOOM") >> { throw new RuntimeException("unexpected internal error") }
+
+        when: "MockMvc dispatches the request — no ControllerAdvice is installed in this setup"
+        mockMvc.perform(get("/getTrx/TXN-BOOM"))
+
+        then: "MockMvc wraps the unhandled exception in a NestedServletException and re-throws it"
+        def ex = thrown(NestedServletException)
+        ex.cause instanceof RuntimeException
+        ex.cause.message == "unexpected internal error"
     }
 }
 

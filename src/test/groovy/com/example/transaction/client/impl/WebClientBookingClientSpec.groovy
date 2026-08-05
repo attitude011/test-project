@@ -4,6 +4,7 @@ import com.example.transaction.dto.BookingDates
 import com.example.transaction.dto.BookingResponse
 import com.example.transaction.exception.BookingApiException
 import org.springframework.web.reactive.function.client.WebClient
+import org.springframework.web.reactive.function.client.WebClientResponseException
 import reactor.core.publisher.Mono
 import spock.lang.Specification
 
@@ -130,5 +131,39 @@ class BookingWebClientImplSpec extends Specification {
         then:
         def ex = thrown(BookingApiException)
         ex.message == INJECTED_MESSAGE
+    }
+
+    def "getBooking should throw BookingApiException with the injected message when the external API returns HTTP 404"() {
+        given: "the external Restful-Booker API responds with 404 Not Found"
+        def notFound = WebClientResponseException.create(404, "Not Found", null, null, null)
+        webClient.get()                      >> uriSpec
+        uriSpec.uri(*_)                      >> headSpec
+        headSpec.retrieve()                  >> respSpec
+        respSpec.bodyToMono(BookingResponse) >> Mono.error(notFound)
+
+        when:
+        client.getBooking(999)
+
+        then: "the 404 is caught and wrapped — the configured error message is used, and the original exception is the cause"
+        def ex = thrown(BookingApiException)
+        ex.message == INJECTED_MESSAGE
+        ex.cause   == notFound
+    }
+
+    def "getBooking should throw BookingApiException with the injected message when the external API returns HTTP 500"() {
+        given: "the external Restful-Booker API responds with 500 Internal Server Error"
+        def serverError = WebClientResponseException.create(500, "Internal Server Error", null, null, null)
+        webClient.get()                      >> uriSpec
+        uriSpec.uri(*_)                      >> headSpec
+        headSpec.retrieve()                  >> respSpec
+        respSpec.bodyToMono(BookingResponse) >> Mono.error(serverError)
+
+        when:
+        client.getBooking(1)
+
+        then: "the 500 is caught and wrapped — the configured error message is used, and the original exception is the cause"
+        def ex = thrown(BookingApiException)
+        ex.message == INJECTED_MESSAGE
+        ex.cause   == serverError
     }
 }

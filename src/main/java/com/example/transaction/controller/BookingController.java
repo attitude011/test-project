@@ -12,29 +12,18 @@ public class BookingController {
     private final BookingService bookingService;
 
     /**
-     * Constructs a new {@code BookingController} with the provided booking service.
-     *
-     * @param bookingService the service layer responsible for orchestrating the booking
-     *                       lookup and persistence logic; must not be {@code null}
+     * @param bookingService service delegate; must not be {@code null}
      */
     public BookingController(BookingService bookingService) {
         this.bookingService = bookingService;
     }
 
     /**
-     * Handles {@code GET /booking/{id}} requests by delegating to the booking service layer.
+     * {@code GET /booking/{id}} — returns the booking record for the given ID.
      *
-     * <p>Returns the full booking record for the given numeric identifier as fetched from
-     * the external Restful-Booker API. If the downstream call fails, a
-     * {@link com.example.transaction.exception.BookingApiException} is propagated and
-     * translated to HTTP 500 by the global exception handler.
-     *
-     * @param id the unique numeric booking identifier supplied as a URI path variable;
-     *           must not be {@code null}
-     * @return the {@link com.example.transaction.dto.BookingResponse} containing firstname,
-     *         lastname, totalprice, depositpaid, bookingdates, and additionalneeds
-     * @throws com.example.transaction.exception.BookingApiException if the external API
-     *         call fails or the response cannot be deserialised
+     * @param id numeric booking identifier
+     * @return populated {@link com.example.transaction.dto.BookingResponse}
+     * @throws com.example.transaction.exception.BookingApiException on upstream failure; mapped to HTTP 500
      */
     @GetMapping("/booking/{id}")
     public BookingResponse getBooking(@PathVariable Integer id) {
