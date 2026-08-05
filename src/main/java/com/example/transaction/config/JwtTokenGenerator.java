@@ -16,6 +16,18 @@ public class JwtTokenGenerator {
     @Value("${jwt.secret}")
     private String jwtSecret;
 
+    /**
+     * Generates a short-lived HS256-signed JWT for local development and Postman testing.
+     *
+     * <p>The token is signed with the secret configured under {@code jwt.secret} in
+     * {@code application.yml}, carries the subject {@code "local-user"}, and expires
+     * <strong>one hour</strong> after issuance. This endpoint is intentionally left
+     * unauthenticated so that a fresh token can always be obtained without a pre-existing
+     * credential.
+     *
+     * @return a compact, URL-safe JWT string in the format
+     *         {@code <header>.<payload>.<signature>}; never {@code null}
+     */
     @GetMapping("/generate-token")
     public String generateToken() {
         SecretKey key = Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));

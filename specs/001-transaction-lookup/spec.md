@@ -62,6 +62,7 @@ A client receives a clear error response when the external Serviex service rejec
 ### Coding Standards
 
 - **CS-001**: All DTO classes MUST use Lombok annotations (`@Data`, `@NoArgsConstructor`, `@AllArgsConstructor`). Manual getters, setters, and constructors are prohibited in DTO classes.
+- **CS-002**: Every Java method created, updated, or generated within this repository MUST include comprehensive Javadoc documentation. The Javadoc MUST contain: (a) a clear description of the method's intent and behavior; (b) a `@param` tag for every parameter detailing its purpose and constraints; (c) a `@return` tag describing the return value and structure (omit only for `void` methods); (d) `@throws` tags for all checked and relevant runtime exceptions with the exact conditions under which they are thrown. Generic or self-evident descriptions are prohibited.
 
 ### Functional Requirements
 
